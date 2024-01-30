@@ -706,8 +706,8 @@ cor_entropy_prosp_age <-
     cor.test(dnk_m$entropy[dnk_m$Age == 65], prosp_age_dnk_m$prosp_age)[[4]],
     cor.test(dnk_f$entropy[dnk_f$Age == 65], prosp_age_dnk_f$prosp_age)[[4]],
     
-    cor.test(ita_m$entropy[ita_m$Age == 65], prosp_age_ita_m$prosp_age)[[4]],
-    cor.test(ita_f$entropy[ita_f$Age == 65], prosp_age_ita_f$prosp_age)[[4]],
+    cor.test(ita_m$entropy[ita_m$Age == 65], prosp_age_ita_m$prosp_age[1:72])[[4]],
+    cor.test(ita_f$entropy[ita_f$Age == 65], prosp_age_ita_f$prosp_age[1:72])[[4]],
     
     cor.test(swe_m$entropy[swe_m$Age == 65], prosp_age_swe_m$prosp_age)[[4]],
     cor.test(swe_f$entropy[swe_f$Age == 65], prosp_age_swe_f$prosp_age)[[4]],
@@ -736,14 +736,27 @@ sex <-
 cor_entropy_prosp_age <- 
   cbind(cor_entropy_prosp_age, country, sex)
 
-left_join(prosp_age_m_f,
+data.corr <- 
+  left_join(prosp_age_m_f,
           dati %>% 
             filter(Age == 65) %>% 
             select(Year, country, sex, entropy) %>% 
             rename(year = Year),
-          by = c("year", "country", "sex")) %>% 
+          by = c("year", "country", "sex")) %>%
+  left_join(cor_entropy_prosp_age %>% as.data.frame() %>% mutate(cor = round(as.numeric(cor),2),
+                                                             across(cor, ~ sprintf("%.2f",round(.x, 2)))),
+           by = c("country", "sex"))
+
+data.corr %>% 
+  filter(year <= 2020) %>% 
   ggplot(aes(x = prosp_age, y = entropy*100, color = fct_rev(sex))) +
   geom_point(size = 1, alpha = .8) +
+  geom_text(data = data.corr %>% filter(sex == "Male"),
+            aes(x = 68, y = 30, label = paste("R = ", cor), color = fct_rev(sex)),
+            show.legend = F) +
+  geom_text(data = data.corr %>% filter(sex == "Female"),
+            aes(x = 68, y = 27.5, label = paste("R = ", cor), color = fct_rev(sex)),
+            show.legend = F) +
   theme_minimal() +
   labs(x = "POAT",
        y = "Lifespan inequality (life table entropy in %)",
@@ -2315,11 +2328,25 @@ cor_equi_prosp_age <-
 
 write.csv(cor_equi_prosp_age, file = "Output/cor_equi_prosp_age.csv")
 
-left_join(prosp_age_m_f,
-          equi_age_m_f,
-          by = c("year", "country", "sex")) %>% 
+data.corr <- 
+  left_join(prosp_age_m_f, #produced in plot results
+          equi_age_m_f, #produced in plot results
+          by = c("year", "country", "sex")) %>%
+  left_join(cor_equi_prosp_age %>% as.data.frame() %>% mutate(cor = round(as.numeric(cor),2),
+                                                              across(cor, ~ sprintf("%.2f",round(.x, 2)))),
+            by = c("country", "sex")) %>% 
+  mutate()
+
+data.corr %>% 
+  filter(year <= 2020) %>% 
   ggplot(aes(x = prosp_age, y = equi_age, color = fct_rev(sex))) +
   geom_point(size = 1, alpha = .8) +
+  geom_text(data = data.corr %>% filter(sex == "Male"),
+            aes(x = 68, y = 80, label = paste("R = ", cor), color = fct_rev(sex)),
+            show.legend = F) +
+  geom_text(data = data.corr %>% filter(sex == "Female"),
+            aes(x = 68, y = 77.5, label = paste("R = ", cor), color = fct_rev(sex)),
+            show.legend = F) +
   theme_minimal() +
   labs(x = "POAT",
        y = "Equivalent age",
@@ -2945,5 +2972,3 @@ s_age_m_f %>%
 
 ggsave(filename = "Output/s_age_m_f_raw.pdf", width = 8, height = 4, dpi = 300)
 write.csv(s_age_m_f, file = "Output/s_age_m_f.csv")
-
-
