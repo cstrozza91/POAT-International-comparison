@@ -1,5 +1,5 @@
 # POAT-International-comparison
-This repository hosts the code used in the paper "Ageing and diversity: Inequalities in longevity and health in low mortality countries".
+This repository hosts the code used in the paper Strozza, C., Egidi, V., Testa, M.R., and Caselli, G. (2024) Ageing and diversity: Inequalities in longevity and health in low mortality countries. Demographic Research 50, 12. https//:www.doi.org/10.4054/DemRes.2024.50.12
 
 Three R scripts are available:
 
